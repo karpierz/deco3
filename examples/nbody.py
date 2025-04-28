@@ -1,6 +1,8 @@
 #!/usr/bin/python
 
-from __future__ import print_function
+# Copyright (c) 2016 Alex Sherman
+# SPDX-License-Identifier: MIT
+
 import pygame
 import random
 import math
@@ -11,7 +13,8 @@ from deco import *
 iterations = 50
 
 
-class Body(object):
+class Body:
+
     def __init__(self, x, y, vx, vy, mass):
         self.x = x
         self.y = y
@@ -84,9 +87,9 @@ if __name__ == "__main__":
                 vx = (dx * cs - dy * sn) * 30 + (random.random() - .5) / 700
                 vy = (dx * sn + dy * cs) * 30 + (random.random() - .5) / 700
 
-            points[key] = Body(
-                1.0 * screen_size * x / point_count, 1.0 * screen_size * y / point_count,
-                vx, vy, m)
+            points[key] = Body(1.0 * screen_size * x / point_count,
+                               1.0 * screen_size * y / point_count,
+                               vx, vy, m)
             key += 1
 
     body_count = len(points)

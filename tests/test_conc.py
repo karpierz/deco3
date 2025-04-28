@@ -1,14 +1,21 @@
+# Copyright (c) 2016 Alex Sherman
+# Copyright (c) 2025 Adam Karpierz
+# SPDX-License-Identifier: MIT
+
 import unittest
 from deco import *
+
 
 @concurrent
 def kwarg_func(kwarg = None):
     kwarg[0] = "kwarged"
     return kwarg
 
+
 @concurrent
 def add_one(value):
     return value + 1
+
 
 @synchronized
 def for_loop(values):
@@ -16,6 +23,7 @@ def for_loop(values):
     for i in values:
         output.append(add_one(i))
     return [i - 1 for i in output]
+
 
 class TestCONC(unittest.TestCase):
 
@@ -29,5 +37,6 @@ class TestCONC(unittest.TestCase):
         values = range(30)
         self.assertEqual(list(values), for_loop(values))
 
+
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main(exit=False)

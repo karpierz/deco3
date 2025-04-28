@@ -1,14 +1,17 @@
+# Copyright (c) 2016 Alex Sherman
+# SPDX-License-Identifier: MIT
+
 import deco
 import time
-import md5
+import hashlib
 
 
 def test_synchronous(sleep_time):
     starttime = time.time()
-    m = md5.new("Nobody inspects the spammish repetition")
+    m = hashlib.md5(b"Nobody inspects the spammish repetition")
     count = 0
     while((time.time() - starttime) < sleep_time/1000.0):
-        m.update("p")
+        m.update(b"p")
         a = m.hexdigest()
         count += 1
     return count
@@ -17,13 +20,14 @@ def test_synchronous(sleep_time):
 @deco.concurrent
 def test(sleep_time):
     starttime = time.time()
-    m = md5.new("Nobody inspects the spammish repetition")
+    m = hashlib.md5(b"Nobody inspects the spammish repetition")
     count = 0
     while((time.time() - starttime) < sleep_time/1000.0):
-        m.update(" repetition")
+        m.update(b" repetition")
         a = m.hexdigest()
         count += 1
     return count
+
 
 test_time = 2
 if __name__ == "__main__":

@@ -1,4 +1,6 @@
-from __future__ import print_function
+# Copyright (c) 2016 Alex Sherman
+# Copyright (c) 2025 Adam Karpierz
+# SPDX-License-Identifier: MIT
 
 import deco
 import time
@@ -21,7 +23,7 @@ def test_size(size):
 SIZE = 100
 if __name__ == "__main__":
     processes = [1, 2, 3, 4]
-    times = [0, 0.005, 0.01, 0.05, 0.1]     # 0.25]
+    times = [0, 0.005, 0.01, 0.05, 0.1]  # 0.25]
     for process_count in processes:
         for time_duration in times:
             test.processes = process_count

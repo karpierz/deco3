@@ -1,3 +1,7 @@
+# Copyright (c) 2016 Alex Sherman
+# Copyright (c) 2025 Adam Karpierz
+# SPDX-License-Identifier: MIT
+
 from multiprocessing import Pool
 from multiprocessing.pool import ThreadPool
 import inspect
@@ -8,11 +12,13 @@ import types
 
 def concWrapper(f, args, kwargs):
     result = concurrent.functions[f](*args, **kwargs)
-    operations = [inner for outer in args + list(kwargs.values()) if type(outer) is argProxy for inner in outer.operations]
+    operations = [inner for outer in args + list(kwargs.values())
+                  if type(outer) is argProxy for inner in outer.operations]
     return result, operations
 
 
 class argProxy(object):
+
     def __init__(self, arg_id, value):
         self.arg_id = arg_id
         self.operations = []
@@ -20,10 +26,10 @@ class argProxy(object):
 
     def __getattr__(self, name):
         if name in ["__getstate__", "__setstate__"]:
-            raise AttributeError
+            raise AttributeError()
         if hasattr(self, 'value') and hasattr(self.value, name):
             return getattr(self.value, name)
-        raise AttributeError
+        raise AttributeError()
 
     def __setitem__(self, key, value):
         self.value.__setitem__(key, value)
@@ -34,6 +40,7 @@ class argProxy(object):
 
 
 class synchronized(object):
+
     def __init__(self, f):
         callerframerecord = inspect.stack()[1][0]
         info = inspect.getframeinfo(callerframerecord)
@@ -63,6 +70,7 @@ class synchronized(object):
 
 
 class concurrent(object):
+
     functions = {}
 
     @staticmethod
@@ -89,7 +97,8 @@ class concurrent(object):
         self.calls = []
         self.arg_proxies = {}
         self.conc_constructor = Pool
-        self.apply_async = lambda self, function, args: self.concurrency.apply_async(function, args)
+        self.apply_async = lambda self, function, args: \
+                                  self.concurrency.apply_async(function, args)
         self.concurrency = None
 
     def __get__(self, *args):
@@ -125,7 +134,8 @@ class concurrent(object):
         args = list(args)
         self.replaceWithProxies(args)
         self.replaceWithProxies(kwargs)
-        result = ConcurrentResult(self.apply_async(self, concWrapper, [self.f_name, args, kwargs]))
+        result = ConcurrentResult(self.apply_async(self, concWrapper,
+                                                   [self.f_name, args, kwargs]))
         self.results.append(result)
         return result
 
@@ -149,9 +159,11 @@ class concurrent(object):
         self.in_progress = False
         return results
 
+
 concurrent.threaded = concurrent.custom(ThreadPool)
 
 class ConcurrentResult(object):
+
     def __init__(self, async_result):
         self.async_result = async_result
 

@@ -1,6 +1,10 @@
+# Copyright (c) 2016 Alex Sherman
+# Copyright (c) 2025 Adam Karpierz
+# SPDX-License-Identifier: MIT
+
 import ast
 from ast import NodeTransformer, copy_location
-import sys
+
 
 def unindent(source_lines):
     for i, line in enumerate(source_lines):
@@ -13,12 +17,11 @@ def Call(func, args=None, kwargs=None):
         args = []
     if kwargs is None:
         kwargs = []
-    if sys.version_info >= (3, 5):
-        return ast.Call(func, args, kwargs)
-    else:
-        return ast.Call(func, args, kwargs, None, None)
+    return ast.Call(func, args, kwargs)
+
 
 class SchedulerRewriter(NodeTransformer):
+
     def __init__(self, concurrent_funcs, frameinfo):
         self.arguments = set()
         self.concurrent_funcs = concurrent_funcs
@@ -41,7 +44,7 @@ class SchedulerRewriter(NodeTransformer):
         return False
 
     def not_implemented_error(self, node, message):
-        return NotImplementedError(self.filename + "(" + str(node.lineno + self.line_offset) + ") " + message)
+        return NotImplementedError(f"{self.filename}({node.lineno + self.line_offset}) {message}")
 
     @staticmethod
     def top_level_name(node):
@@ -52,7 +55,9 @@ class SchedulerRewriter(NodeTransformer):
         return None
 
     def is_concurrent_call(self, node):
-        return type(node) is ast.Call and type(node.func) is ast.Name and node.func.id in self.concurrent_funcs
+        return (type(node) is ast.Call
+                and type(node.func) is ast.Name
+                and node.func.id in self.concurrent_funcs)
 
     def encounter_call(self, call):
         self.encountered_funcs.add(call.func.id)
@@ -62,16 +67,20 @@ class SchedulerRewriter(NodeTransformer):
                 self.arguments.add(arg_name)
 
     def get_waits(self):
-        return [ast.Expr(Call(ast.Attribute(ast.Name(fname, ast.Load()), 'wait', ast.Load()))) for fname in self.encountered_funcs]
+        return [ast.Expr(Call(ast.Attribute(ast.Name(fname,  ast.Load()),
+                                                     'wait', ast.Load())))
+                for fname in self.encountered_funcs]
 
     def visit_Call(self, node):
         if self.is_concurrent_call(node):
-            raise self.not_implemented_error(node, "The usage of the @concurrent function is unsupported")
+            raise self.not_implemented_error(node, "The usage of the @concurrent function "
+                                                   "is unsupported")
         node = self.generic_visit(node)
         return node
 
     def generic_visit(self, node):
-        if (isinstance(node, ast.stmt) and self.references_arg(node)) or isinstance(node, ast.Return):
+        if ((isinstance(node, ast.stmt)
+             and self.references_arg(node)) or isinstance(node, ast.Return)):
             return self.get_waits() + [node]
         return NodeTransformer.generic_visit(self, node)
 
@@ -79,7 +88,8 @@ class SchedulerRewriter(NodeTransformer):
         return ast.Call(func = func, args = args, keywords = keywords)
 
     def makeLambda(self, args, call):
-        return ast.Lambda(ast.arguments(posonlyargs = [], args = args, defaults = [], kwonlyargs = [], kw_defaults = []), call)
+        return ast.Lambda(ast.arguments(posonlyargs = [], args = args, defaults = [],
+                                        kwonlyargs = [], kw_defaults = []), call)
 
     def visit_Expr(self, node):
         if type(node.value) is ast.Call:
@@ -88,26 +98,23 @@ class SchedulerRewriter(NodeTransformer):
                 self.encounter_call(call)
                 return node
             elif any([self.is_concurrent_call(arg) for arg in call.args]):
-                conc_args = [(i, arg) for i, arg in enumerate(call.args) if self.is_concurrent_call(arg)]
+                conc_args = [(i, arg) for i, arg in enumerate(call.args)
+                             if self.is_concurrent_call(arg)]
                 if len(conc_args) > 1:
-                    raise self.not_implemented_error(call, "Functions with multiple @concurrent parameters are unsupported")
+                    raise self.not_implemented_error(call, "Functions with multiple @concurrent "
+                                                           "parameters are unsupported")
                 conc_call = conc_args[0][1]
                 if isinstance(call.func, ast.Attribute):
                     self.arguments.add(SchedulerRewriter.top_level_name(call.func.value))
                 self.encounter_call(conc_call)
                 call.args[conc_args[0][0]] = ast.Name("__value__", ast.Load())
-                if sys.version_info >= (3, 0):
-                    args = [ast.arg("__value__", None)]
-                else:
-                    args = [ast.Name("__value__", ast.Param())]
+                args = [ast.arg("__value__", None)]
                 call_lambda = self.makeLambda(args, call)
                 copy_location_kwargs = {
                     "func": ast.Attribute(conc_call.func, 'call', ast.Load()),
                     "args": [call_lambda] + conc_call.args,
                     "keywords": conc_call.keywords
                 }
-                if(sys.version_info < (3, 0)):
-                    copy_location_kwargs["kwargs"] = conc_call.kwargs
                 return copy_location(ast.Expr(ast.Call(**copy_location_kwargs)), node)
         return self.generic_visit(node)
 
@@ -115,12 +122,22 @@ class SchedulerRewriter(NodeTransformer):
     def visit_ListComp(self, node):
         if self.is_concurrent_call(node.elt):
             self.encounter_call(node.elt)
-            wrapper = self.makeCall(func = ast.Name('list', ast.Load()),
-                args = [self.makeCall(func = ast.Name('map', ast.Load()),
-                    args = [
-                        self.makeLambda([ast.arg(arg='r')], self.makeCall(func = ast.Attribute(ast.Name('r', ast.Load()), 'result', ast.Load()))),
-                        node
-                    ])])
+            wrapper = self.makeCall(
+                func = ast.Name('list', ast.Load()),
+                args = [
+                    self.makeCall(
+                        func = ast.Name('map', ast.Load()),
+                        args = [
+                            self.makeLambda(
+                                [ast.arg(arg='r')],
+                                self.makeCall(func = ast.Attribute(ast.Name('r', ast.Load()),
+                                                                   'result', ast.Load()))
+                            ),
+                            node
+                        ]
+                    )
+                ]
+            )
             return wrapper
         return self.generic_visit(node)
 
@@ -128,9 +145,11 @@ class SchedulerRewriter(NodeTransformer):
         if not (type(node) is ast.Assign and self.is_concurrent_call(node.value)):
             return False
         if len(node.targets) != 1:
-            raise self.not_implemented_error(node, "Concurrent assignment does not support multiple assignment targets")
+            raise self.not_implemented_error(node, "Concurrent assignment does not support "
+                                                   "multiple assignment targets")
         if not type(node.targets[0]) is ast.Subscript:
-            raise self.not_implemented_error(node, "Concurrent assignment only implemented for index based objects")
+            raise self.not_implemented_error(node, "Concurrent assignment only implemented "
+                                                   "for index based objects")
         return True
 
     def visit_Assign(self, node):
@@ -140,12 +159,10 @@ class SchedulerRewriter(NodeTransformer):
             name = node.targets[0].value
             self.arguments.add(SchedulerRewriter.top_level_name(name))
             # Check ast.slice compatibility
-            if hasattr(node.targets[0].slice, "value"):
+            index = node.targets[0].slice
+            if hasattr(index, "value"):
                 # For Python <= 3.8
-                index = node.targets[0].slice.value
-            else:
-                # For Python == 3.9
-                index = node.targets[0].slice
+                index = index.value
             call.func = ast.Attribute(call.func, 'assign', ast.Load())
             call.args = [ast.Tuple([name, index], ast.Load())] + call.args
             return copy_location(ast.Expr(call), node)

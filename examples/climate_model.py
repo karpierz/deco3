@@ -1,3 +1,6 @@
+# Copyright (c) 2016 Alex Sherman
+# SPDX-License-Identifier: MIT
+
 from deco import *
 import time
 import random
@@ -17,6 +20,7 @@ def process_data_set(data):
         for lon in range(5):
             results[lat][lon] = process_lat_lon(lat, lon, data)
     return dict(results)
+
 
 if __name__ == "__main__":
     random.seed(0)

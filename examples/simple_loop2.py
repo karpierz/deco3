@@ -1,4 +1,6 @@
-from __future__ import print_function
+# Copyright (c) 2016 Alex Sherman
+# SPDX-License-Identifier: MIT
+
 from deco import *
 import time
 

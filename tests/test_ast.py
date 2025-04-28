@@ -1,13 +1,19 @@
+# Copyright (c) 2016 Alex Sherman
+# Copyright (c) 2025 Adam Karpierz
+# SPDX-License-Identifier: MIT
+
 import unittest
 import ast
 import inspect
 import time
 from deco import *
 
+
 @concurrent
 def conc_func(*args, **kwargs):
     time.sleep(0.1)
     return kwargs
+
 
 @synchronized
 def body_cases():
@@ -15,11 +21,13 @@ def body_cases():
     a = True if False else False
     b = (lambda : True)()
 
+
 @synchronized
 def tainted_return():
     data = []
     data.append(conc_func(data))
     return data
+
 
 @synchronized
 def len_of_append():
@@ -28,6 +36,7 @@ def len_of_append():
     derp = len(data)
     return derp
 
+
 def indented():
     @synchronized
     def _indented():
@@ -35,37 +44,41 @@ def indented():
 
     return _indented()
 
+
 @synchronized
 def kwarged_sync(**kwargs):
     data = []
     data.append(conc_func(**kwargs))
     return data[0]
 
+
 @synchronized
 def subscript_args():
     d = type('', (object,), {"items": {(0,0): 0}})()
     conc_func(d.items[0, 0])
-    #Read d to force a synchronization event
+    # Read d to force a synchronization event
     d = d
     output = conc_func.in_progress
     return output
+
 
 @synchronized
 def list_comp():
     result = [conc_func(i = i) for i in range(10)]
     return result
 
+
 class TestAST(unittest.TestCase):
 
-    #This just shouldn't throw any exceptions
+    # This just shouldn't throw any exceptions
     def test_body_cases(self):
         body_cases()
 
-    #This just shouldn't throw any exceptions
+    # This just shouldn't throw any exceptions
     def test_indent_cases(self):
         indented()
 
-    #This just shouldn't throw any exceptions
+    # This just shouldn't throw any exceptions
     def test_tainted_return(self):
         tainted_return()
 
@@ -81,5 +94,6 @@ class TestAST(unittest.TestCase):
     def test_list_comp(self):
         self.assertEqual(list_comp(),[{'i': i} for i in range(10)])
 
+
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main(exit=False)
