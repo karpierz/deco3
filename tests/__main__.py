@@ -29,9 +29,10 @@ def main(argv=sys.argv[1:]):
     tests = test_suite(argv or None)
     # result = unittest.TextTestRunner(verbosity=2).run(tests)
     # return 0 if result.wasSuccessful() else 1
-    result1 = runpy.run_path(str(test_dir/"test_ast.py"),  run_name="__main__")
-    result2 = runpy.run_path(str(test_dir/"test_conc.py"), run_name="__main__")
-    result3 = runpy.run_path(str(test_dir/"tman_conc.py"), run_name="__main__")
+    result2 = runpy.run_path(str(test_dir/"test_decorator.py"),  run_name="__main__")
+    result1 = runpy.run_path(str(test_dir/"test_ast.py"),        run_name="__main__")
+    result2 = runpy.run_path(str(test_dir/"test_concurrent.py"), run_name="__main__")
+    result3 = runpy.run_path(str(test_dir/"tman_concurrent.py"), run_name="__main__")
     return 0 if result1 and result2 and result3 else 1
 
 

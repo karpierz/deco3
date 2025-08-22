@@ -1,8 +1,9 @@
 # Copyright (c) 2016 Alex Sherman
 # SPDX-License-Identifier: MIT
 
-from deco import *
 import time
+
+from deco import concurrent
 
 
 @concurrent.threaded

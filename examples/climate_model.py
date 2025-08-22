@@ -1,10 +1,11 @@
 # Copyright (c) 2016 Alex Sherman
 # SPDX-License-Identifier: MIT
 
-from deco import *
 import time
 import random
 from collections import defaultdict
+
+from deco import concurrent, synchronized
 
 
 @concurrent  # We add this for the concurrent function

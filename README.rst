@@ -94,8 +94,7 @@ How it works
 ------------
 
 For an in depth discussion of the mechanisms at work, we wrote a paper
-for a class which `can be found here <decorated_concurrency_>`_
-(or original `can be found here <decorated_concurrency_org_>`_).
+for a class which `can be found here <decorated_concurrency_>`_.
 
 As an overview, DECO is mainly just a smart wrapper for Python's
 multiprocessing.pool. When ``@concurrent`` is applied to a function it
@@ -189,4 +188,3 @@ Authors
 .. _deco: https://pypi.org/project/deco/
 .. _deco_wiki: https://github.com/alex-sherman/deco/wiki
 .. _decorated_concurrency: _static/Decorated_Concurrency.pdf
-.. _decorated_concurrency_org: https://drive.google.com/file/d/0B_olmC0u8E3gWTBmN3pydGxHdEE/view?usp=sharing&resourcekey=0-9aUctXy9Hn5g9SIul4kbVw

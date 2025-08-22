@@ -1,6 +1,13 @@
 Changelog
 =========
 
+0.9.0 (2025-08-20)
+------------------
+- 100% code coverage.
+- Making the package typed.
+- General improvements and cleanup.
+- Setup (dependencies) update.
+
 0.8.3 (2025-06-11)
 ------------------
 - Setup (dependencies) update.

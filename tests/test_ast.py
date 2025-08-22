@@ -3,33 +3,32 @@
 # SPDX-License-Identifier: MIT
 
 import unittest
-import ast
-import inspect
 import time
-from deco import *
+
+from deco import concurrent, synchronized
 
 
-@concurrent
+@concurrent  # pragma: no cover
 def conc_func(*args, **kwargs):
     time.sleep(0.1)
     return kwargs
 
 
-@synchronized
+@synchronized  # pragma: no cover
 def body_cases():
     conc_func()
     a = True if False else False
-    b = (lambda : True)()
+    b = (lambda: True)()
 
 
-@synchronized
+@synchronized  # pragma: no cover
 def tainted_return():
     data = []
     data.append(conc_func(data))
     return data
 
 
-@synchronized
+@synchronized  # pragma: no cover
 def len_of_append():
     data = []
     data.append(conc_func([]))
@@ -37,7 +36,7 @@ def len_of_append():
     return derp
 
 
-def indented():
+def indented():  # pragma: no cover
     @synchronized
     def _indented():
         conc_func()
@@ -45,14 +44,14 @@ def indented():
     return _indented()
 
 
-@synchronized
+@synchronized  # pragma: no cover
 def kwarged_sync(**kwargs):
     data = []
     data.append(conc_func(**kwargs))
     return data[0]
 
 
-@synchronized
+@synchronized  # pragma: no cover
 def subscript_args():
     d = type('', (object,), {"items": {(0,0): 0}})()
     conc_func(d.items[0, 0])
@@ -62,7 +61,7 @@ def subscript_args():
     return output
 
 
-@synchronized
+@synchronized  # pragma: no cover
 def list_comp():
     result = [conc_func(i = i) for i in range(10)]
     return result

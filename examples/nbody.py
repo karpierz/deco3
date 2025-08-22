@@ -3,12 +3,12 @@
 # Copyright (c) 2016 Alex Sherman
 # SPDX-License-Identifier: MIT
 
-import pygame
 import random
 import math
 import time
-from deco import *
 
+import pygame
+from deco import concurrent, synchronized
 
 iterations = 50
 
@@ -32,14 +32,6 @@ class Body:
         return ((self.x - other.x) ** 2 + (self.y - other.y) ** 2)
 
 
-@synchronized
-def Simulate(body_list, dt):
-    next_body_list = {}
-    for i in body_list.keys():
-        SimulateBody(body_list, next_body_list, i, dt)
-    body_list.update(next_body_list)
-
-
 @concurrent
 def SimulateBody(body_list, next_body_list, index, dt):
     simulated_body = body_list[index]
@@ -57,6 +49,14 @@ def SimulateBody(body_list, next_body_list, index, dt):
             fy += (body.y - simulated_body.y) / d * f
         simulated_body.update(fx, fy, dt / iterations)
     next_body_list[index] = simulated_body
+
+
+@synchronized
+def Simulate(body_list, dt):
+    next_body_list = {}
+    for i in body_list.keys():
+        SimulateBody(body_list, next_body_list, i, dt)
+    body_list.update(next_body_list)
 
 
 if __name__ == "__main__":
